@@ -158,7 +158,7 @@ ConstIterT ci =
  std::find(static_cast<ConstIterT>(values.begin()), // cast
  static_cast<ConstIterT>(values.end()), // cast
  1983);
-values.insert(static_cast<IterT>(ci), 1998); // may not
+values.insert(static_castIter<T>(ci), 1998); // may not
  // compile;
 ~~~
 the cast in this code in the call to std::find are needed because the values container is non-const. In c++ 98 there was no simple way to get a const_iterator from non-const container. But even then, locations for insertion and erasures could only be done with iterators, not with const_iterators. That's why there's a cast to Iterator.
@@ -177,4 +177,25 @@ values.insert(it, 1998);
 In C++11, the only truly meaningful information about exception emitting behavior of a function was simply if it emitted any. noexcept is for functions that guarantee they won't emit exceptions.
 
 # Use constexpr whenever possible #
+
+constexpr is a beefed up form of const in objects. In the case of functions it has a different meaning.
+
+Constexpr indicates a value that's not only constant, but also that it's known during compile time. YOU CAN'T ASSUME THAT THE RESULT OF A CONSTEXPR FUNCTION IS CONST.
+
+In the case of constexpr objects:
+-> They are const and they have values known during compile time.
+->These values are privileged. they can be placed on read-only memory.
+-> integral values that are constant and known during compile time can be used in contexts where c++ requires an integral constant expression, for example, specificilation of array sizes, integral template arguments(length of std::array objects included), enumerator values, etc:
+
+~~~cpp
+int sz; // non-constexpr variable
+…
+constexpr auto arraySize1 = sz; // error! sz's value not
+ // known at compilation
+std::array<int, sz> data1; // error! same problem
+constexpr auto arraySize2 = 10; // fine, 10 is a
+ // compile-time constant
+std::array<int, arraySize2> data2; // fine, arraySize2
+//is constexpr
+~~~
 

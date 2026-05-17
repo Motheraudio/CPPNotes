@@ -242,12 +242,13 @@
   },
   "active": "5df59256e14b7ecc",
   "lastOpenFiles": [
-    "hehe",
     "Type deduction in templates.md",
-    "From c++98 to Modern.md",
     "Writing code with auto.md",
+    "Welcome.md",
+    "From c++98 to Modern.md",
     "decltype.md",
     "Auto type deduction.md",
-    "Welcome.md"
+    "Effective Modern C++ notes",
+    "hehe"
   ]
 }
