@@ -198,4 +198,36 @@ constexpr auto arraySize2 = 10; // fine, 10 is a
 std::array<int, arraySize2> data2; // fine, arraySize2
 //is constexpr
 ~~~
+all constexpr objects are const, but not all const objects are constexpr. *If you want to make sure compilers guarantee that the variable has a value that can be used in contexts requiring compile-time constants, you use constexpr*
+
+constxpr functions produce compile time constants when called with compile time constants. If they're called with values not know until runtime, they produce  runtime values:
+1. constexpr functions can be used in contexts that demand compile-time con‐
+stants. If the values of the arguments you pass to a constexpr function in such a
+context are known during compilation, the result will be computed during
+compilation. If any of the arguments’ values is not known during compilation,
+your code will be rejected.
+
+3. When a constexpr function is called with one or more values that are not
+known during compilation, it acts like a normal function, computing its result at
+runtime. This means you don’t need two functions to perform the same opera‐
+tion, one for compile-time constants and one for all other values. The constexpr
+function does it all.
+
+Something like 
+~~~cpp
+constexpr
+Point midpoint(const Point& p1, const Point& p2) noexcept
+{
+ return { (p1.xValue() + p2.xValue()) / 2, // call constexpr
+ (p1.yValue() + p2.yValue()) / 2 }; // member funcs
+}
+constexpr auto mid = midpoint(p1, p2); // init constexpr
+ // object w/result of
+ // constexpr function
+~~~
+
+is viable! tat means that mid can be constructed at compile time! USE CONST EXPR WHEN POSSIBE!
+
+# Make const member functions thread safe #
+
 
