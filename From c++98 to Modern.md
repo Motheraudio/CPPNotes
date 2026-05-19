@@ -230,4 +230,82 @@ is viable! tat means that mid can be constructed at compile time! USE CONST EXPR
 
 # Make const member functions thread safe #
 
+Use mutexes/atomics safely; they can't be copied, only moved.
 
+For a single variable or memory location requiring synchroni‐
+zation, use of a std::atomic is adequate, but once you get to two or more variables
+or memory locations that require manipulation as a unit, you should reach for a
+mutex.
+1. Make const member functions thread safe unless you’re certain they’ll never
+be used in a concurrent context.
+
+2. Use of std::atomic variables may offer better performance than a mutex, but
+they’re suited for manipulation of only a single variable or memory location.
+
+# Understand special member function generation #
+
+C++ special functions are the ones C++ is willing to generate on its own (C++98: def. constructor, destructor, copy constructor and copy asignment operator). They're generated only if needed; The default constructor for example only gets generated if the class declares no constructor at all.
+
+Generated functions are implicitly public and inline, as well as nonvirtual unless the generated function is a destructor in a derived class inheriting from a base class with virtual destructor.
+
+In C++11, there is two more special member functions: *move constructor* and *move asignment operator*.
+~~~cpp
+class Widget {
+public:
+ …
+ Widget(Widget&& rhs); // move constructor
+ Widget& operator=(Widget&& rhs); // move assignment operator
+ …
+};
+~~~
+Move constructors perform "memberwise moves" on each of the non-static data members of the class; it steals the whole thing; also happens with base class parts, and the move assignment operator does the same.
+
+However, when talking about "move constructing" or move assigning a data member or a base class, there is no guarantee that the move will take place, it's more like a move request, because some types arent move enabled; in those ccases, they'll be "moved" via copy operations.
+
+If you declare a move operation (assignment or constructor), the compiler will not generate the other so you must declare both.
+
+If member-wise copying of the class's non static data members is what you want, you can just go "=default" in c++11:
+~~~cpp
+class Widget {
+public:
+ …
+ ~Widget(); // user-declared dtor
+ … // default copy ctor
+ Widget(const Widget&) = default; // behavior is OK
+ Widget& // default copy assign
+ operator=(const Widget&) = default; // behavior is OK
+ …
+};
+~~~
+
+Rules of special member functions in C++:
+1. Default constructor: Same rules as C++98. Generated only if the class contains
+no user-declared constructors.
+2. Destructor: Essentially same rules as C++98; sole difference is that destructors
+are noexcept by default. As in C++98, virtual only if a base class
+destructor is virtual.
+3. Copy constructor: Same runtime behavior as C++98: memberwise copy con‐
+struction of non-static data members. Generated only if the class lacks a userdeclared copy constructor. Deleted if the class declares a move operation.
+Generation of this function in a class with a user-declared copy assignment oper‐
+ator or destructor is deprecated.
+4. Copy assignment operator: Same runtime behavior as C++98: memberwise
+copy assignment of non-static data members. Generated only if the class lacks a
+user-declared copy assignment operator. Deleted if the class declares a move
+operation. Generation of this function in a class with a user-declared copy con‐
+structor or destructor is deprecated.
+5. Move constructor and move assignment operator: Each performs memberwise
+moving of non-static data members. Generated only if the class contains no userdeclared copy operations, move operations, or destructor.
+
+Remember:
+1. The special member functions are those compilers may generate on their own:
+default constructor, destructor, copy operations, and move operations.
+2. Move operations are generated only for classes lacking explicitly declared
+move operations, copy operations, and a destructor.
+3. The copy constructor is generated only for classes lacking an explicitly
+declared copy constructor, and it’s deleted if a move operation is declared.
+The copy assignment operator is generated only for classes lacking an explic‐
+itly declared copy assignment operator, and it’s deleted if a move operation is
+declared. Generation of the copy operations in classes with an explicitly
+declared destructor is deprecated.
+4. Member function templates never suppress generation of special member
+functions.
